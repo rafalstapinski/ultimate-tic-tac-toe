@@ -1,0 +1,45 @@
+<!DOCTYPE html >
+
+<html >
+  <head >
+    <title >ultimate tic-tac-toe</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js" ></script>
+  </head>
+  <body >
+    <div >
+      <form class="new_game" >
+        <input type="submit" value="Join Game" />
+      </form>
+    </div>
+    <script >
+      var randomString = function(length) {
+        var text = ''
+        var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+        for(var i = 0; i < length; i++) {
+            text += possible.charAt(Math.floor(Math.random() * possible.length))
+        }
+        return text
+      }
+
+      $('.new_game').submit(function(e) {
+
+        e.preventDefault()
+
+        $.ajax({
+          url: 'http://localhost:8080/api/game/new',
+          type: 'post',
+          data: {
+            game_name: randomString(16)
+          },
+          success: function(data) {
+            if (data.status == 200) {
+              location.href='game?player=x&name=' + data.payload.game_name
+            } else {
+              alert(data.payload.message)
+            }
+          }
+        })
+      })
+    </script>
+  </body>
+</html>
