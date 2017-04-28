@@ -10,12 +10,16 @@ urls = (
     '/game', 'route_game',
 )
 
+# api endpoint to register new move
+
 class api_game_move:
     def POST(self):
 
         new_api(self)
 
         i = web.input()
+
+        # validate input
 
         try:
             game_name = i['game_name'].encode('utf-8')
@@ -31,11 +35,17 @@ class api_game_move:
         except:
             return write({'message': 'something went wrong'}, 500)
 
+        # if invalid player
+
         if player != 'x' and player != 'o':
             return write({'message': 'you\'re probably playing the wrong game'}, 400)
 
+        # if invalid cell
+
         if (cell < 0 and cell > 8) or (local < 0 and local > 8):
             return write ({'message': 'this must be some wackier version of ttt'}, 400)
+
+        # get game
 
         params = dict(game_name=game_name)
 
@@ -46,8 +56,12 @@ class api_game_move:
         except:
             return write({'message': 'something went wrong'}, 500)
 
+        # check if ended
+
         if game.status == 'ended':
             return write({'message': 'the game is over!'}, 403)
+
+        # get most recent log of the game
 
         params = dict(game_id=game.id)
         try:
@@ -55,11 +69,15 @@ class api_game_move:
         except:
             return write({'message': 'something went wrong'}, 500)
 
+        # if not your turn
+
         if player == log.player:
             return write({'message': 'not your turn!'}, 403)
 
         state = json.loads(log.state)
         board = json.loads(log.board)
+
+        # validate move
 
         if board[local] is not None:
             return write({'message': 'this local board is already taken!'}, 403)
@@ -75,10 +93,14 @@ class api_game_move:
 
         new_board = board
 
+        # check if any of the local boards are done
+
         for i in range(9):
             if board[i] is None:
                 print eval_ttt(new_state[i])
                 new_board[i] = eval_ttt(new_state[i])
+
+        # check if the global board is done
 
         winner = eval_ttt(new_board)
 
@@ -92,9 +114,14 @@ class api_game_move:
 
         move = '%s,%s' % (local, cell)
 
+        # update log
+
         db.insert('log', game_id=game.id, player=player, move=move, state=json.dumps(new_state), next_local_has_to_be=next_local_has_to_be, board=json.dumps(new_board))
 
         return write({'message': 'you made your turn!'}, 200)
+
+    # function to evaluate if the array representing a board (local/global)
+    # has three in a row/diagonal for either o/x or if is full
 
 def eval_ttt(ttt):
 
@@ -120,6 +147,90 @@ def eval_ttt(ttt):
 
     return None
 
+# api endpoint to return any updated log of the board
+
+class api_game_update:
+    def POST(self):
+
+        new_api(self)
+        i = web.input()
+
+        # validate input
+
+        try:
+            game_name = i['game_name'].encode('utf-8')
+            user_log_id = int(i['log_id'])
+        except KeyError:
+            return write({'message': 'game_name or id not provided'}, 400)
+        except UnicodeError:
+            return write({'message': 'input must be utf-8 encoded'}, 400)
+        except ValueError:
+            return write({'message': 'input must be integer'}, 400)
+        except:
+            return write({'message': 'something went wrong'}, 500)
+
+        params = dict(game_name=game_name)
+
+        try:
+            game = db.select('games', params, where='game_name = $game_name').list()[0]
+        except IndexError:
+            return write({'message': 'game not found'}, 404)
+        except:
+            return write({'message': 'something went wrong'}, 500)
+
+        params = dict(game_id=game.id)
+        try:
+            log = db.select('log', params, where='game_id = $game_id', order='id DESC', limit=1).list()[0]
+        except:
+            return write({'message': 'something went wrong'}, 500)
+
+        # if user has old log, return necessary info
+
+        if log.id > user_log_id:
+            player = 'x' if log.player == 'o' else 'o'
+            state = json.loads(log.state)
+
+            if game.status == 'ended':
+                return write({'winner': game.winner, 'log_id': log.id, 'board': json.loads(log.board), 'state': state, 'player': player, 'next_local_has_to_be': log.next_local_has_to_be}, 200)
+
+            return write({'log_id': log.id, 'board': json.loads(log.board), 'state': state, 'player': player, 'next_local_has_to_be': log.next_local_has_to_be}, 200)
+
+        return write({'message': 'log up to date'}, 204)
+
+# create a new game in the database
+
+class api_game_new:
+    def POST(self):
+
+        new_api(self)
+        i = web.input()
+
+        try:
+            game_name = i['game_name'].encode('utf-8')
+        except KeyError:
+            return write({'message': 'game_name not provided'}, 400)
+        except UnicodeError:
+            return write({'message': 'inputs must be utf-8 encoded'}, 400)
+        except:
+            return write({'message': 'something went wrong'}, 500)
+
+        params = dict(game_name=game_name)
+
+        results = db.select('games', params, where='game_name = $game_name')
+
+        for result in results:
+            return write({'message': 'game of that name already exists'}, 403)
+
+        game_id = db.insert('games', game_name=game_name, status='running')
+
+        new_state = json.dumps([[None for x in range(9)] for y in range(9)])
+        board = json.dumps([None for x in range(9)])
+
+        db.insert('log', state=new_state, board=board, game_id=game_id, player='o', move=None, next_local_has_to_be=None)
+
+        return write({'game_name': game_name}, 200)
+
+# serve game.html
 
 class route_game:
     def GET(self):
@@ -154,50 +265,7 @@ class route_game:
 
         return html
 
-class api_game_update:
-    def POST(self):
-
-        new_api(self)
-        i = web.input()
-
-        try:
-            game_name = i['game_name'].encode('utf-8')
-            user_log_id = int(i['log_id'])
-        except KeyError:
-            return write({'message': 'game_name or id not provided'}, 400)
-        except UnicodeError:
-            return write({'message': 'input must be utf-8 encoded'}, 400)
-        except ValueError:
-            return write({'message': 'input must be integer'}, 400)
-        except:
-            return write({'message': 'something went wrong'}, 500)
-
-        params = dict(game_name=game_name)
-
-        try:
-            game = db.select('games', params, where='game_name = $game_name').list()[0]
-        except IndexError:
-            return write({'message': 'game not found'}, 404)
-        except:
-            return write({'message': 'something went wrong'}, 500)
-
-        params = dict(game_id=game.id)
-        try:
-            log = db.select('log', params, where='game_id = $game_id', order='id DESC', limit=1).list()[0]
-        except:
-            return write({'message': 'something went wrong'}, 500)
-
-        if log.id > user_log_id:
-            player = 'x' if log.player == 'o' else 'o'
-            state = json.loads(log.state)
-
-            if game.status == 'ended':
-                return write({'winner': game.winner, 'log_id': log.id, 'board': json.loads(log.board), 'state': state, 'player': player, 'next_local_has_to_be': log.next_local_has_to_be}, 200)
-
-            return write({'log_id': log.id, 'board': json.loads(log.board), 'state': state, 'player': player, 'next_local_has_to_be': log.next_local_has_to_be}, 200)
-
-        return write({'message': 'log up to date'}, 204)
-
+# serve index
 
 class route_index:
     def GET(self):
@@ -205,37 +273,6 @@ class route_index:
         html = f.read()
         f.close()
         return html
-
-class api_game_new:
-    def POST(self):
-
-        new_api(self)
-        i = web.input()
-
-        try:
-            game_name = i['game_name'].encode('utf-8')
-        except KeyError:
-            return write({'message': 'game_name not provided'}, 400)
-        except UnicodeError:
-            return write({'message': 'inputs must be utf-8 encoded'}, 400)
-        except:
-            return write({'message': 'something went wrong'}, 500)
-
-        params = dict(game_name=game_name)
-
-        results = db.select('games', params, where='game_name = $game_name')
-
-        for result in results:
-            return write({'message': 'game of that name already exists'}, 403)
-
-        game_id = db.insert('games', game_name=game_name, status='running')
-
-        new_state = json.dumps([[None for x in range(9)] for y in range(9)])
-        board = json.dumps([None for x in range(9)])
-
-        db.insert('log', state=new_state, board=board, game_id=game_id, player='o', move=None, next_local_has_to_be=None)
-
-        return write({'game_name': game_name}, 200)
 
 def write(payload, status):
     return json.dumps({'payload': payload, 'status': status})

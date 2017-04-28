@@ -4,12 +4,13 @@
   <head >
     <title >ultimate tic-tac-toe</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js" ></script>
+    <link rel="stylesheet" type="text/css" href="/static/res/css/game.css" />
   </head>
   <body >
-    <div >
-      <form class="new_game" >
-        <input type="submit" value="Join Game" />
-      </form>
+    <div class="info" >
+      <h1 >Welcome to ultimate tic-tac-toe</h1>
+      <a href="https://en.wikipedia.org/wiki/Ultimate_tic-tac-toe" >Wikipedia and Rules</a>
+      <button class="new_game" >Start new game</button>
     </div>
     <script >
       var randomString = function(length) {
@@ -21,9 +22,7 @@
         return text
       }
 
-      $('.new_game').submit(function(e) {
-
-        e.preventDefault()
+      $('.new_game').click(function() {
 
         $.ajax({
           url: 'http://localhost:8080/api/game/new',
@@ -33,7 +32,7 @@
           },
           success: function(data) {
             if (data.status == 200) {
-              location.href='game?player=x&game_name=' + data.payload.game_name
+              location.href='/game?player=x&game_name=' + data.payload.game_name
             } else {
               alert(data.payload.message)
             }
