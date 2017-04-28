@@ -10,6 +10,11 @@
     <div class="player" >
 
     </div>
+    <div class="turn" >
+
+    </div>
+    <span class="alertbox"></span>
+    <button class="update" ></button>
     <div class='global' >
       <div class='local' data-local="0" >
         <div class='cell' data-cell="0" ></div>
@@ -114,6 +119,10 @@
     </div>
     <script >
 
+      var alert = function(msg) {
+        $('.alertbox').html(msg)
+      }
+
       var getParameterByName = function(name) {
         name = name.replace(/[\[\]]/g, "\\$&");
         var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
@@ -141,40 +150,81 @@
             cell: cell
           },
           success: function(data) {
-            console.log(data)
+            if (data.status == 200) {
+              updateBoard()
+            } else {
+              alert(data.payload.message)
+            }
           }
         })
       })
 
+      var updateBoard = function() {
 
-      //
-      // var updateBoard = function() {
-      //
-      //   if (sessionStorage.getItem('log_id') == null) {
-      //     sessionStorage.setItem('log_id', 0)
-      //   }
-      //
-      //   $.ajax({
-      //     url: 'http://localhost:8080/api/game/update',
-      //     type: 'post',
-      //     data: {
-      //       game_name: getParameterByName('game_name'),
-      //       log_id: sessionStorage.getItem('log_id')
-      //     },
-      //     success: function(data) {
-      //       if (data.status == 200) {
-      //         console.log(data.payload)
-      //         sessionStorage.setItem('log_id', data.payload.log_id)
-      //       } else if (data.status != 204) {
-      //         alert(data.payload.message)
-      //       } else {
-      //         console.log(data)
-      //       }
-      //     }
-      //   })
-      // }
-      //
+        // // for instances in which
+        // log_id_name = getParameterByName(player) + '_log_id'
+
+        if (sessionStorage.getItem('log_id') == null) {
+          sessionStorage.setItem('log_id', 0)
+        }
+
+        $.ajax({
+          url: 'http://localhost:8080/api/game/update',
+          type: 'post',
+          data: {
+            game_name: getParameterByName('game_name'),
+            log_id: sessionStorage.getItem('log_id')
+          },
+          success: function(data) {
+            if (data.status == 200) {
+
+              console.log(Object.keys(data.payload))
+              // console.log(data.payload.boards)
+
+
+
+              sessionStorage.setItem('log_id', data.payload.log_id)
+
+              if (data.payload.player == getParameterByName('player')) {
+                $('.turn').text('your turn')
+              } else {
+                $('.turn').text('not your turn')
+              }
+
+              if (data.payload.next_local_has_to_be != null) {
+                $('.global .local .cell').removeClass('valid')
+                $('.global > .local:nth-child('+ (data.payload.next_local_has_to_be+1) +') > .cell').addClass('valid')
+              } else {
+                $('.global .local .cell').addClass('valid')
+              }
+
+
+              for (var i = 0; i < 9; i++) {
+                for (var j = 0; j < 9; j++) {
+                  if (data.payload.state[i][j] != null) {
+                //    console.log($('.global > .local:nth-child('+i+1+') > .cell:nth-child('+j+1+')').data('cell'))
+                    $('.global > .local:nth-child('+ (i+1) +') > .cell:nth-child('+ (j+1) +')').html(data.payload.state[i][j])
+                  }
+                }
+
+                // if (data.payload.board[i] == 'o') {
+                //   $('.global > .local:nth-child('+ (i+1) +') > .cell:nth-child(2n+1)').addClass('o')
+                // }
+
+              }
+
+            } else if (data.status != 204) {
+              alert(data.payload.message)
+            }
+          }
+        })
+      }
+
       // setInterval(updateBoard, 1000)
+
+      sessionStorage.setItem('log_id', 0)
+      updateBoard()
+      $('.update').click(updateBoard)
 
     </script>
   </body>

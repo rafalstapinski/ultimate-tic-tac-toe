@@ -13,6 +13,8 @@ urls = (
 class api_game_move:
     def POST(self):
 
+        new_api(self)
+
         i = web.input()
 
         try:
@@ -54,20 +56,62 @@ class api_game_move:
             return write({'message': 'not your turn!'}, 403)
 
         state = json.loads(log.state)
+        board = json.loads(log.board)
 
         if board[local] is not None:
             return write({'message': 'this local board is already taken!'}, 403)
         elif state[local][cell] is not None:
             return write({'message': 'this cell is already taken!'}, 403)
 
-        if log.next_local_has_to_be is not None:
+        if log.next_local_has_to_be is not None: # is this the best way of avoiding int(None)
             if local != int(log.next_local_has_to_be):
                 return write({'message': 'this is not the local board you are looking for!'}, 403)
 
         new_state = state
         new_state[local][cell] = player
 
-        if state[]
+        new_board = board
+
+        for i in range(9):
+            if board[i] is None:
+                print eval_ttt(new_state[i])
+                new_board[i] = eval_ttt(new_state[i])
+
+        if new_board[cell] is not None:
+            next_local_has_to_be = None
+        else:
+            next_local_has_to_be = cell
+
+        move = '%s,%s' % (local, cell)
+
+        db.insert('log', game_id=game.id, player=player, move=move, state=json.dumps(new_state), next_local_has_to_be=next_local_has_to_be, board=json.dumps(new_board))
+
+        return write({'message': 'you made your turn!'}, 200)
+
+def eval_ttt(ttt):
+
+    if (ttt[0] is not None and ttt[0] == ttt[1] and ttt[1] == ttt[2]):
+        return ttt[0]
+    if (ttt[3] is not None and ttt[3] == ttt[4] and ttt[4] == ttt[5]):
+        return ttt[3]
+    if (ttt[6] is not None and ttt[6] == ttt[7] and ttt[7] == ttt[8]):
+        return ttt[6]
+    if (ttt[0] is not None and ttt[0] == ttt[3] and ttt[3] == ttt[6]):
+        return ttt[0]
+    if (ttt[1] is not None and ttt[1] == ttt[4] and ttt[4] == ttt[7]):
+        return ttt[1]
+    if (ttt[2] is not None and ttt[2] == ttt[5] and ttt[5] == ttt[8]):
+        return ttt[2]
+    if (ttt[0] is not None and ttt[0] == ttt[4] and ttt[4] == ttt[8]):
+        return ttt[0]
+    if (ttt[2] is not None and ttt[2] == ttt[4] and ttt[2] == ttt[6]):
+        return ttt[2]
+
+    if None not in ttt:
+        return 'n'
+
+    return None
+
 
 class route_game:
     def GET(self):
@@ -139,7 +183,7 @@ class api_game_update:
             player = 'x' if log.player == 'o' else 'o'
             state = json.loads(log.state)
 
-            return write({'log_id': log.id, ' board', log.board, 'state': state, 'player': player, 'next_local_has_to_be': log.next_local_has_to_be}, 200)
+            return write({'log_id': log.id, 'board': json.loads(log.board), 'state': state, 'player': player, 'next_local_has_to_be': log.next_local_has_to_be}, 200)
 
         return write({'message': 'log up to date'}, 204)
 

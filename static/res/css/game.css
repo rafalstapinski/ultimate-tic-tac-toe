@@ -10,7 +10,7 @@ div.global div.local {
   width:300px;
   border:5px solid black;
   float:left;
-  background-color:#ccc;
+  background-color:#aaa;
 }
 div.global div.local div.cell {
   width:98px;
@@ -19,6 +19,12 @@ div.global div.local div.cell {
   float:left;
 }
 div.global div.local div.cell:hover {
-  background-color:#eee;
+  background-color:#f2b328;
   cursor:pointer;
+}
+div.global div.local div.valid {
+  background-color:white;
+}
+div.global div.local div.o {
+  background-color:blue;
 }
