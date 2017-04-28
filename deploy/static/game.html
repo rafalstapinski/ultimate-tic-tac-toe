@@ -4,17 +4,15 @@
   <head >
     <title >ultimate tic-tac-toe</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js" ></script>
-    <link rel="stylesheet" type="text/css" href="/static/res/css/game.css" />
+    <link rel="stylesheet" type="text/css" href="/p/uttt/res?f=css/game.css" />
   </head>
   <body >
-    <div class="player" >
-
+    <div class="header" >
+      <div class="wrap" >You are <span class="player" ></span> and it is <span class="turn" ></span></div>
+      <div class="notify_link" >Share the link below with your opponent</div>
+      <input class="copy_link" />
+      <div class="alertbox"></div>
     </div>
-    <div class="turn" >
-
-    </div>
-    <span class="alertbox"></span>
-    <button class="update" ></button>
     <div class='global' >
       <div class='local' data-local="0" >
         <div class='cell' data-cell="0" ></div>
@@ -119,8 +117,20 @@
     </div>
     <script >
 
+      var scale = 'scale(1)';
+      document.body.style.webkitTransform =  scale
+      document.body.style.msTransform =   scale
+      document.body.style.transform = scale
+
       var alert = function(msg) {
+        $('.alertbox').css('background-color', 'red')
+        $('.alertbox').css('color', '#eee')
         $('.alertbox').html(msg)
+        setTimeout(function() {
+          $('.alertbox').css({'background-color': 'white'})
+          $('.alertbox').css({'color': 'white'})
+        }, 2000)
+
       }
 
       var getParameterByName = function(name) {
@@ -132,7 +142,13 @@
         return decodeURIComponent(results[2].replace(/\+/g, " "));
       }
 
-      $('.player').text(getParameterByName('player'))
+      var player = getParameterByName('player')
+      $('.player').text(player)
+      if (player == 'x') {
+        $('.copy_link').val('https://stapinski.co/p/uttt/game?player=o&game_name=' + getParameterByName('game_name'))
+      } else {
+        $('.copy_link').val('https://stapinski.co/p/uttt/game?player=x&game_name=' + getParameterByName('game_name'))
+      }
 
       $('.cell').click(function(e) {
         e.preventDefault()
@@ -141,7 +157,7 @@
         var cell = $(this).data('cell')
 
         $.ajax({
-          url: 'http://localhost:8080/api/game/move',
+          url: 'https://stapinski.co/p/uttt/api/game/move',
           type: 'post',
           data: {
             game_name: getParameterByName('game_name'),
@@ -161,15 +177,12 @@
 
       var updateBoard = function() {
 
-        // // for instances in which
-        // log_id_name = getParameterByName(player) + '_log_id'
-
         if (sessionStorage.getItem('log_id') == null) {
           sessionStorage.setItem('log_id', 0)
         }
 
         $.ajax({
-          url: 'http://localhost:8080/api/game/update',
+          url: 'https://stapinski.co/p/uttt/api/game/update',
           type: 'post',
           data: {
             game_name: getParameterByName('game_name'),
@@ -182,6 +195,7 @@
 
               if (data.payload.winner != undefined) {
                 alert('Game has ended! '+ data.payload.winner +' won!')
+                clearInterval(updateInterval)
               }
 
               if (data.payload.player == getParameterByName('player')) {
@@ -200,19 +214,19 @@
               for (var i = 0; i < 9; i++) {
                 for (var j = 0; j < 9; j++) {
                   if (data.payload.state[i][j] != null) {
-                //    console.log($('.global > .local:nth-child('+i+1+') > .cell:nth-child('+j+1+')').data('cell'))
                     $('.global > .local:nth-child('+ (i+1) +') > .cell:nth-child('+ (j+1) +')').html(data.payload.state[i][j])
                   }
                 }
 
                 if (data.payload.board[i] == 'o') {
-                  $('.global > .local:nth-child('+ (i+1) +') > .cell:nth-child(2n)').addClass('o')
+                  $('.global > .local:nth-child('+ (i+1) +') > .cell').addClass('o')
+                  $('.global > .local:nth-child('+ (i+1) +') > .cell:nth-child(5)').removeClass('o')
+
                 } else if (data.payload.board[i] == 'x') {
-                  $('.global > .local:nth-child('+ (i+1) +') > .cell:nth-child(2n)').addClass('x')
+                  $('.global > .local:nth-child('+ (i+1) +') > .cell:nth-child(2n+1)').addClass('x')
                 } else if (data.payload.board[i] == 'n') {
                   $('.global > .local:nth-child('+ (i+1) +') > .cell').addClass('closed')
                 }
-
               }
 
             } else if (data.status != 204) {
@@ -222,8 +236,7 @@
         })
       }
 
-      // setInterval(updateBoard, 1000)
-
+      var updateInterval = setInterval(updateBoard, 1000)
       sessionStorage.setItem('log_id', 0)
       updateBoard()
       $('.update').click(updateBoard)

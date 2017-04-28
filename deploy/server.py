@@ -2,13 +2,36 @@ import web
 import json
 import os
 
+from web.wsgiserver import CherryPyWSGIServer
+
+CherryPyWSGIServer.ssl_certificate = "/etc/letsencrypt/live/rupreceptorials.com/fullchain.pem"
+CherryPyWSGIServer.ssl_private_key = "/etc/letsencrypt/live/rupreceptorials.com/privkey.pem"
+
+
 urls = (
-    '/api/game/new', 'api_game_new',
-    '/api/game/update', 'api_game_update',
-    '/api/game/move', 'api_game_move',
-    '/', 'route_index',
-    '/game', 'route_game',
+    '/p/uttt/api/game/new', 'api_game_new',
+    '/p/uttt/api/game/update', 'api_game_update',
+    '/p/uttt/api/game/move', 'api_game_move',
+    '/p/uttt', 'route_index',
+    '/p/uttt/', 'route_index',
+    '/p/uttt/game', 'route_game',
+    '/p/uttt/res', 'route_res'
 )
+
+class route_res:
+    def GET(self):
+
+        i = web.input()
+
+        try:
+            f = open(os.path.join(__location__, 'static/res', i['f']))
+            res = f.read()
+            f.close()
+
+            return res
+        except:
+            return notfound()
+
 
 class api_game_move:
     def POST(self):
@@ -83,8 +106,7 @@ class api_game_move:
         winner = eval_ttt(new_board)
 
         if winner is not None:
-            params = dict(game_name=game_name)
-            db.update('games', params, where='game_name = $game_name', status='ended', winner=winner)
+            db.update('games', vars=params, where='id = $game_id', status='ended', winner=winner)
 
         if new_board[cell] is not None:
             next_local_has_to_be = None
@@ -131,23 +153,23 @@ class route_game:
             game_name = i['game_name'].encode('utf-8')
             player = i['player'].encode('utf-8')
         except:
-            raise web.seeother('/')
+            raise web.seeother('/p/uttt')
 
         if player != 'x' and player != 'o':
-            raise web.seeother('/')
+            raise web.seeother('/p/uttt')
 
         params = dict(game_name=game_name)
 
         results = db.select('games', params, where='game_name = $game_name').list()
 
         if len(results) == 0:
-            raise web.seeother('/')
+            raise web.seeother('/p/uttt')
         elif len(results) == 1:
             game = results[0]
             if game.status == 'ended':
-                raise web.seeother('/')
+                raise web.seeother('/p/uttt')
         else:
-            raise web.seeother('/')
+            raise web.seeother('/p/uttt')
 
         f = open(os.path.join(__location__, 'static/game.html'))
         html = f.read()
@@ -188,12 +210,13 @@ class api_game_update:
         except:
             return write({'message': 'something went wrong'}, 500)
 
-        if game.status == 'ended':
-            return write({'message': 'game has ended', 'winner': game.winner}, 200)
 
         if log.id > user_log_id:
             player = 'x' if log.player == 'o' else 'o'
             state = json.loads(log.state)
+
+            if game.status == 'ended':
+                return write({'winner': game.winner, 'log_id': log.id, 'board': json.loads(log.board), 'state': state, 'player': player, 'next_local_has_to_be': log.next_local_has_to_be}, 200)
 
             return write({'log_id': log.id, 'board': json.loads(log.board), 'state': state, 'player': player, 'next_local_has_to_be': log.next_local_has_to_be}, 200)
 
@@ -253,10 +276,9 @@ def new_page(request):
     web.header('Access-Control-Allow-Origin', '*')
 
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
-db = web.database(dbn='sqlite', db='utt.db')
+dbname = os.path.realpath(os.path.join(__location__, 'utt.db'))
+db = web.database(dbn='sqlite', db=dbname)
 
-if __name__ == '__main__':
-    app = web.application(urls, globals())
-    web.config.debug = False
-    app.notfound = notfound
-    app.run()
+app = web.application(urls, globals())
+app.notfound = notfound
+application = app.wsgifunc()
