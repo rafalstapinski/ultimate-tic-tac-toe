@@ -178,12 +178,11 @@
           success: function(data) {
             if (data.status == 200) {
 
-              console.log(Object.keys(data.payload))
-              // console.log(data.payload.boards)
-
-
-
               sessionStorage.setItem('log_id', data.payload.log_id)
+
+              if (data.payload.winner != undefined) {
+                alert('Game has ended! '+ data.payload.winner +' won!')
+              }
 
               if (data.payload.player == getParameterByName('player')) {
                 $('.turn').text('your turn')
@@ -198,7 +197,6 @@
                 $('.global .local .cell').addClass('valid')
               }
 
-
               for (var i = 0; i < 9; i++) {
                 for (var j = 0; j < 9; j++) {
                   if (data.payload.state[i][j] != null) {
@@ -207,9 +205,13 @@
                   }
                 }
 
-                // if (data.payload.board[i] == 'o') {
-                //   $('.global > .local:nth-child('+ (i+1) +') > .cell:nth-child(2n+1)').addClass('o')
-                // }
+                if (data.payload.board[i] == 'o') {
+                  $('.global > .local:nth-child('+ (i+1) +') > .cell:nth-child(2n)').addClass('o')
+                } else if (data.payload.board[i] == 'x') {
+                  $('.global > .local:nth-child('+ (i+1) +') > .cell:nth-child(2n)').addClass('x')
+                } else if (data.payload.board[i] == 'n') {
+                  $('.global > .local:nth-child('+ (i+1) +') > .cell').addClass('closed')
+                }
 
               }
 

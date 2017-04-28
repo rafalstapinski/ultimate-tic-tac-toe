@@ -2,12 +2,18 @@ import web
 import json
 import os
 
+from web.wsgiserver import CherryPyWSGIServer
+
+CherryPyWSGIServer.ssl_certificate = "/etc/letsencrypt/live/rupreceptorials.com/fullchain.pem"
+CherryPyWSGIServer.ssl_private_key = "/etc/letsencrypt/live/rupreceptorials.com/privkey.pem"
+
+
 urls = (
-    '/api/game/new', 'api_game_new',
-    '/api/game/update', 'api_game_update',
-    '/api/game/move', 'api_game_move',
-    '/', 'route_index',
-    '/game', 'route_game',
+    '/uttt/api/game/new', 'api_game_new',
+    '/uttt/api/game/update', 'api_game_update',
+    '/uttt/api/game/move', 'api_game_move',
+    '/uttt/', 'route_index',
+    '/uttt/game', 'route_game',
 )
 
 class api_game_move:
@@ -255,8 +261,6 @@ def new_page(request):
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 db = web.database(dbn='sqlite', db='utt.db')
 
-if __name__ == '__main__':
-    app = web.application(urls, globals())
-    web.config.debug = False
-    app.notfound = notfound
-    app.run()
+app = web.application(urls, globals())
+app.notfound = notfound
+application = app.wsgifunc()

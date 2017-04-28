@@ -28,3 +28,9 @@ div.global div.local div.valid {
 div.global div.local div.o {
   background-color:blue;
 }
+div.global div.local div.x {
+  background-color:red;
+}
+div.global div.local div.closed {
+  background-color:#777;
+}
