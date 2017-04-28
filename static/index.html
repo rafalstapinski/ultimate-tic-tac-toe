@@ -33,7 +33,7 @@
           },
           success: function(data) {
             if (data.status == 200) {
-              location.href='game?player=x&name=' + data.payload.game_name
+              location.href='game?player=x&game_name=' + data.payload.game_name
             } else {
               alert(data.payload.message)
             }
