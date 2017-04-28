@@ -1,0 +1,72 @@
+* {
+  margin:none;
+  font-family:Helvetica;
+}
+div.header {
+  margin-top:20px;
+}
+div.header div.wrap {
+  text-align:center;
+  font-size:22px;
+  text-align:center;
+}
+div.header div.notify_link {
+  margin-top:10px;
+  text-align:center;
+  font-size:18;
+}
+input.copy_link {
+  width:500px;
+  border:none;
+  font-size:15px;
+  margin-left:calc(50% - 250px);
+  text-align:center;
+}
+div.header div.alertbox {
+  background-color:white;
+  width:300px;
+  text-align:center;
+  margin-top:100px;
+  height:30px;
+  line-height:30px;
+  margin-left:calc(50% - 150px);
+  color:#eee;
+}
+div.global {
+  width:930px;
+  height:930px;
+  border:5px solid #aaa;
+  margin-left:calc(50% - 465px);
+  margin-top:5px;
+}
+div.global div.local {
+  width:300px;
+  border:5px solid #aaa;
+  float:left;
+  background-color:#ccc;
+}
+div.global div.local div.cell {
+  width:98px;
+  height:98px;
+  border:1px solid #aaa;
+  line-height:90px;
+  font-size:70px;
+  text-align:center;
+  float:left;
+}
+div.global div.local div.cell:hover {
+  background-color:#f2b328;
+  cursor:pointer;
+}
+div.global div.local div.valid {
+  background-color:white;
+}
+div.global div.local div.o {
+  background-color:blue;
+}
+div.global div.local div.x {
+  background-color:red;
+}
+div.global div.local div.closed {
+  background-color:#777;
+}
