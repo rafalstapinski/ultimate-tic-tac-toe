@@ -1,17 +1,15 @@
+from __future__ import print_function
+
 from easyAI import TwoPlayersGame
 from easyAI.Player import Human_Player
 from easyAI import id_solve
 
+
 class TicTacToe( TwoPlayersGame ):
-    """ The board positions are numbered as follows:
-            7 8 9
-            4 5 6
-            1 2 3
-    """
 
     def __init__(self, players):
         self.players = players
-        self.board = [0 for i in range(9)]
+        self.board = [['.' for j in range(9)] for i in range(9)]
         self.nplayer = 1 # player 1 starts.
 
     def possible_moves(self):
@@ -35,10 +33,65 @@ class TicTacToe( TwoPlayersGame ):
         return (self.possible_moves() == []) or self.lose()
 
     def show(self):
-        print ('\n'+'\n'.join([
-                        ' '.join([['.','O','X'][self.board[3*j+i]]
-                        for i in range(3)])
-                 for j in range(3)]) )
+
+        print()
+
+        for i in range(0, 3):
+            for j in range(0, 3):
+                print(str(self.board[i][j]) + ' ' , end='')
+            print('  ', end='')
+        print()
+
+        for i in range(0, 3):
+            for j in range(3, 6):
+                print(str(self.board[i][j]) + ' ' , end='')
+            print('  ', end='')
+        print()
+
+        for i in range(0, 3):
+            for j in range(6, 9):
+                print(str(self.board[i][j]) + ' ' , end='')
+            print('  ', end='')
+        print()
+        print()
+
+        for i in range(3, 6):
+            for j in range(0, 3):
+                print(str(self.board[i][j]) + ' ' , end='')
+            print('  ', end='')
+        print()
+
+        for i in range(3, 6):
+            for j in range(3, 6):
+                print(str(self.board[i][j]) + ' ' , end='')
+            print('  ', end='')
+        print()
+
+        for i in range(3, 6):
+            for j in range(6, 9):
+                print(str(self.board[i][j]) + ' ' , end='')
+            print('  ', end='')
+        print()
+        print()
+
+        for i in range(6, 9):
+            for j in range(0, 3):
+                print(str(self.board[i][j]) + ' ' , end='')
+            print('  ', end='')
+        print()
+
+        for i in range(6, 9):
+            for j in range(3, 6):
+                print(str(self.board[i][j]) + ' ' , end='')
+            print('  ', end='')
+        print()
+
+        for i in range(6, 9):
+            for j in range(6, 9):
+                print(str(self.board[i][j]) + ' ' , end='')
+            print('  ', end='')
+        print()
+        print()
 
     def scoring(self):
         return -100 if self.lose() else 0

@@ -10,7 +10,7 @@ class EasyAIPlayer(WebSocket):
         print self.data
 
     def handleConnected(self):
-        # self.clients.append(self.address, )
+        self.clients.append({str(self.address): [TicTacToe([Human_Player(), AI_Player])]})
         print self.address, 'connected'
 
     def handleClose(self):
