@@ -10,6 +10,7 @@ class TicTacToe( TwoPlayersGame ):
     def __init__(self, players):
         self.players = players
         self.board = [['.' for j in range(9)] for i in range(9)]
+        self.tally = ['.' for _ in range(9)]
         self.nplayer = 1 # player 1 starts.
 
     def possible_moves(self):
@@ -22,12 +23,12 @@ class TicTacToe( TwoPlayersGame ):
         self.board[int(move)-1] = 0
 
     def lose(self):
-        """ Has the opponent "three in line ?" """
-        return any( [all([(self.board[c-1]== self.nopponent)
+
+        return any([all([(self.tally[c-1] == self.nopponent)
                       for c in line])
-                      for line in [[1,2,3],[4,5,6],[7,8,9], # horiz.
-                                   [1,4,7],[2,5,8],[3,6,9], # vertical
-                                   [1,5,9],[3,5,7]]]) # diagonal
+                      for line in [[1, 2, 3], [4 ,5, 6], [7, 8, 9],
+                                   [1, 4, 7], [2 ,5, 8], [3, 6, 9],
+                                   [1, 5, 9], [3 ,5, 7]]])
 
     def is_over(self):
         return (self.possible_moves() == []) or self.lose()
@@ -37,58 +38,72 @@ class TicTacToe( TwoPlayersGame ):
         print()
 
         for i in range(0, 3):
+            print(self.tally[i] + ' ', end='')
+        print()
+
+        for i in range(3, 6):
+            print(self.tally[i] + ' ', end='')
+        print()
+
+        for i in range(6, 9):
+            print(self.tally[i] + ' ', end='')
+
+        print()
+        print()
+
+        for i in range(0, 3):
             for j in range(0, 3):
-                print(str(self.board[i][j]) + ' ' , end='')
+                print(self.board[i][j] + ' ' , end='')
             print('  ', end='')
         print()
 
         for i in range(0, 3):
             for j in range(3, 6):
-                print(str(self.board[i][j]) + ' ' , end='')
+                print(self.board[i][j] + ' ' , end='')
             print('  ', end='')
         print()
 
         for i in range(0, 3):
             for j in range(6, 9):
-                print(str(self.board[i][j]) + ' ' , end='')
+                print(self.board[i][j] + ' ' , end='')
             print('  ', end='')
         print()
         print()
 
         for i in range(3, 6):
             for j in range(0, 3):
-                print(str(self.board[i][j]) + ' ' , end='')
+                print(self.board[i][j] + ' ' , end='')
             print('  ', end='')
         print()
 
         for i in range(3, 6):
             for j in range(3, 6):
-                print(str(self.board[i][j]) + ' ' , end='')
+                print(self.board[i][j] + ' ' , end='')
             print('  ', end='')
         print()
 
         for i in range(3, 6):
             for j in range(6, 9):
-                print(str(self.board[i][j]) + ' ' , end='')
+                print(self.board[i][j] + ' ' , end='')
             print('  ', end='')
         print()
         print()
 
         for i in range(6, 9):
             for j in range(0, 3):
-                print(str(self.board[i][j]) + ' ' , end='')
+                print(self.board[i][j] + ' ' , end='')
             print('  ', end='')
         print()
 
         for i in range(6, 9):
             for j in range(3, 6):
-                print(str(self.board[i][j]) + ' ' , end='')
+                print(self.board[i][j] + ' ' , end='')
             print('  ', end='')
         print()
 
         for i in range(6, 9):
             for j in range(6, 9):
-                print(str(self.board[i][j]) + ' ' , end='')
+                print(self.board[i][j] + ' ' , end='')
             print('  ', end='')
         print()
         print()
